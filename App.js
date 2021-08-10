@@ -7,63 +7,35 @@
  */
 
 import React from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from 'react-native';
-
-import { Colors, Header } from 'react-native/Libraries/NewAppScreen';
-import { RecoilRoot } from 'recoil';
-import ListContact from './src/components/listContact';
+// Redux State management
+import { Provider } from 'react-redux';
+import configureStore from './src/services/store';
+const store = configureStore();
+// Navigation
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+const Stack = createNativeStackNavigator();
+// Screen
+import HomeScreen from './src/screens/homeScreen';
+import DetailScreen from './src/screens/detailScreen';
+import Headers from './src/components/header'
 
 const App = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
   return (
-    <RecoilRoot>
-      <SafeAreaView style={backgroundStyle}>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={backgroundStyle}>
-          <Header />
-          <View
-            style={{
-              backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            }}>
-            <ListContact />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </RecoilRoot>
+    <Provider store={store}>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Contact"
+            component={HomeScreen}
+            options={{ header: props => <Headers {...props} /> }}
+          />
+          <Stack.Screen name="Detail" component={DetailScreen} />
+          <Stack.Screen name="Tambah" component={DetailScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
   );
 };
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;

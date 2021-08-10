@@ -1,30 +1,48 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Alert } from 'react-native';
 import { ListItem, Avatar, Button } from 'react-native-elements';
-
-const list = [
-  {
-    name: 'Amy Farha',
-    avatar_url: 'https://randomuser.me/api/portraits/thumb/men/97.jpg',
-    subtitle: 'Vice President',
-  },
-  {
-    name: 'Chris Jackson',
-    avatar_url: 'https://randomuser.me/api/portraits/thumb/men/97.jpg',
-    subtitle: 'Vice Chairman',
-  },
-];
+import { connect } from 'react-redux';
+import { getListContact, deleteContact } from '../../services/actions/contactActions';
+import { useNavigation } from '@react-navigation/native';
 
 const ListContact = props => {
+  const { getContact, contact, delCont, alert, resetAlert } = props;
+  const [state, setstate] = React.useState([]);
+  const navigation = useNavigation();
+
   const showDetail = dt => {
-    console.log('lihat', dt);
+    navigation.navigate('Detail', { id: dt.id });
   };
+
   const handleDelete = dt => {
-    console.log('delete', dt);
+    delCont(dt.id)
   };
+
+  React.useEffect(() => {
+    getContact();
+  }, []);
+
+  React.useEffect(() => {
+    setstate(contact);
+  }, [contact]);
+
+  React.useEffect(() => {
+    if (alert.type !== 'reset') {
+      Alert.alert(
+        "Informasi",
+        alert.message,
+        [
+          { text: "OK", onPress: () =>  resetAlert() }
+        ]
+      );
+    }
+
+    if (alert.type === 'success') getContact();
+  }, [alert]);
+
   return (
     <View>
-      {list.map((l, i) => (
+      {state.map((l, i) => (
         <ListItem.Swipeable
           key={i}
           bottomDivider
@@ -32,22 +50,25 @@ const ListContact = props => {
             <Button
               title="Info"
               icon={{ name: 'info', color: 'white' }}
-              buttonStyle={{ minHeight: '100%' }}
-              onPress={() => handleDelete(l)}
+              buttonStyle={styles.btnDelete}
+              onPress={() => showDetail(l)}
             />
           }
           leftContent={
             <Button
-              onPress={() => showDetail(l)}
+              onPress={() => handleDelete(l)}
               title="Hapus"
               icon={{ name: 'delete', color: 'white' }}
-              buttonStyle={{ minHeight: '100%', backgroundColor: 'red' }}
+              buttonStyle={styles.btnInfo}
             />
           }>
-          <Avatar rounded source={{ uri: l.avatar_url }} />
+          <Avatar
+            rounded
+            source={{ uri: l.photo }}
+          />
           <ListItem.Content>
-            <ListItem.Title>{l.name}</ListItem.Title>
-            <ListItem.Subtitle>{l.subtitle}</ListItem.Subtitle>
+            <ListItem.Title>{`${l.firstName} ${l.lastName}`}</ListItem.Title>
+            <ListItem.Subtitle>{l.age} Tahun</ListItem.Subtitle>
           </ListItem.Content>
         </ListItem.Swipeable>
       ))}
@@ -55,6 +76,29 @@ const ListContact = props => {
   );
 };
 
-export default ListContact;
+const mapStateToProps = state => {
+  return {
+    alert: state.alert,
+    contact: state.contact.data ? state.contact.data : [],
+  };
+};
 
-const styles = StyleSheet.create({});
+const mapDispatchToProps = dispatch => {
+  return {
+    getContact: id => dispatch(getListContact(id)),
+    delCont: id => dispatch(deleteContact(id)),
+    resetAlert: () => dispatch({type: 'ALERT_RESET'})
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ListContact);
+
+const styles = StyleSheet.create({
+  btnInfo: {
+    minHeight: '100%',
+    backgroundColor: 'red',
+  },
+  btnDelete: {
+    minHeight: '100%',
+  },
+});
